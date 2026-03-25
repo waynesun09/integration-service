@@ -14,7 +14,54 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Scan issue for prompt injection
+        id: injection-scan
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run prompt injection classifier
+        id: scan
+        run: |
+          pip install -q transformers torch
+          ISSUE_BODY=$(gh issue view ${{ github.event.issue.number }} \
+            --json title,body --jq '.title + "\n" + .body')
+          python3 -c "
+          from transformers import pipeline
+          import json, sys, os
+
+          text = os.environ['ISSUE_TEXT']
+          pipe = pipeline(
+              'text-classification',
+              model='protectai/deberta-v3-base-prompt-injection',
+          )
+          result = pipe(text)[0]
+          label = result['label']
+          score = result['score']
+          print(f'Classification: {label} ({score:.3f})')
+
+          if label == 'INJECTION' and score > 0.8:
+              print('::error::Prompt injection detected')
+              print(f'detected=true', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          else:
+              print(f'detected=false', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          "
+        env:
+          ISSUE_TEXT: ${{ github.event.issue.title }} ${{ github.event.issue.body }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Flag injected issue
+        if: steps.scan.outputs.detected == 'true'
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "⚠️ **Prompt injection detected.** This issue has been flagged by automated scanning and will not be processed by the agent. A human maintainer will review it."
+          gh issue edit ${{ github.event.issue.number }} \
+            --add-label "security/prompt-injection"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Triage issue
+        if: steps.scan.outputs.detected != 'true'
         uses: google-github-actions/run-gemini-cli@v1
         with:
           gemini_api_key: ${{ secrets.AI_API_KEY }}
