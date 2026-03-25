@@ -19,6 +19,9 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.AGENT_TOKEN }}
 
+      - name: Attach local branch
+        run: git checkout ${{ github.event.pull_request.head.ref }}
+
       - name: Check iteration count
         id: iteration
         run: |
