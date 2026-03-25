@@ -14,35 +14,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          python-version: '3.12'
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Run prompt injection classifier
+      - name: Scan issue with Model Armor
         id: scan
         run: |
-          pip install -q transformers torch --index-url https://download.pytorch.org/whl/cpu
-          python3 -c "
-          from transformers import pipeline
-          import os
-
-          text = os.environ['ISSUE_TEXT']
-          pipe = pipeline(
-              'text-classification',
-              model='protectai/deberta-v3-base-prompt-injection-v2',
-          )
-          result = pipe(text, truncation=True, max_length=512)[0]
-          label = result['label']
-          score = result['score']
-          print(f'Classification: {label} ({score:.3f})')
-
-          if label == 'INJECTION' and score > 0.8:
-              print('::error::Prompt injection detected')
-              print('detected=true', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
-          else:
-              print('detected=false', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
-          "
+          RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+            -H "Content-Type: application/json" \
+            "https://modelarmor.us-central1.rep.googleapis.com/v1/projects/gen-lang-client-0234376367/locations/us-central1/templates/fullsend-issue-scan:sanitizeUserPrompt" \
+            -d "$(jq -n --arg text "$ISSUE_TEXT" '{"user_prompt_data": {"text": $text}}')")
+          echo "$RESPONSE" | jq .
+          MATCH=$(echo "$RESPONSE" | jq -r '.sanitizationResult.filterMatchState // "UNKNOWN"')
+          echo "match=$MATCH" >> "$GITHUB_OUTPUT"
+          if [ "$MATCH" = "MATCH_FOUND" ]; then
+            echo "::error::Model Armor detected prompt injection or jailbreak"
+            echo "detected=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "detected=false" >> "$GITHUB_OUTPUT"
+          fi
         env:
           ISSUE_TEXT: ${{ github.event.issue.title }} ${{ github.event.issue.body }}
 
@@ -50,7 +43,7 @@ jobs:
         if: steps.scan.outputs.detected == 'true'
         run: |
           gh issue comment ${{ github.event.issue.number }} \
-            --body "⚠️ **Prompt injection detected.** This issue has been flagged by automated scanning and will not be processed by the agent. A human maintainer will review it."
+            --body "⚠️ **Prompt injection detected.** This issue has been flagged by Google Cloud Model Armor and will not be processed by the agent. A human maintainer will review it."
           gh issue edit ${{ github.event.issue.number }} \
             --add-label "security/prompt-injection"
         env:
