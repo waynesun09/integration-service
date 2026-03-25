@@ -15,6 +15,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Generate reviewer app token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.REVIEWER_APP_ID }}
+          private-key: ${{ secrets.REVIEWER_APP_PRIVATE_KEY }}
+
       - name: Review pull request
         uses: redhat-community-ai-tools/cicaddy-action@v0.3.2
         with:
@@ -37,4 +44,4 @@ jobs:
             Post a structured review. If changes are needed, request changes.
             If everything looks good, approve the PR.
           post_pr_comment: 'true'
-          github_token: ${{ secrets.AGENT_TOKEN }}
+          github_token: ${{ steps.app-token.outputs.token }}
