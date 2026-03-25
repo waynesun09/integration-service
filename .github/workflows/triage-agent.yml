@@ -25,7 +25,7 @@ jobs:
           RESPONSE=$(curl -s -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
-            "https://modelarmor.us-central1.rep.googleapis.com/v1/projects/gen-lang-client-0234376367/locations/us-central1/templates/fullsend-issue-scan:sanitizeUserPrompt" \
+            "https://modelarmor.${GCP_LOCATION}.rep.googleapis.com/v1/projects/${GCP_PROJECT_ID}/locations/${GCP_LOCATION}/templates/${MODEL_ARMOR_TEMPLATE}:sanitizeUserPrompt" \
             -d "$(jq -n --arg text "$ISSUE_TEXT" '{"user_prompt_data": {"text": $text}}')")
           echo "$RESPONSE" | jq .
           MATCH=$(echo "$RESPONSE" | jq -r '.sanitizationResult.filterMatchState // "UNKNOWN"')
@@ -38,6 +38,9 @@ jobs:
           fi
         env:
           ISSUE_TEXT: ${{ github.event.issue.title }} ${{ github.event.issue.body }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
+          MODEL_ARMOR_TEMPLATE: ${{ secrets.MODEL_ARMOR_TEMPLATE }}
 
       - name: Flag injected issue
         if: steps.scan.outputs.detected == 'true'
