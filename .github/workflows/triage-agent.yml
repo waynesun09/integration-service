@@ -14,8 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Scan issue for prompt injection
-        id: injection-scan
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -23,26 +22,22 @@ jobs:
       - name: Run prompt injection classifier
         id: scan
         run: |
-          pip install -q transformers torch
+          pip install -q transformers torch --index-url https://download.pytorch.org/whl/cpu
           python3 -c "
-          from transformers import AutoTokenizer, AutoModelForSequenceClassification
-          import torch, os
-
-          model_id = 'meta-llama/Llama-Prompt-Guard-2-22M'
-          tokenizer = AutoTokenizer.from_pretrained(model_id)
-          model = AutoModelForSequenceClassification.from_pretrained(model_id)
+          from transformers import pipeline
+          import os
 
           text = os.environ['ISSUE_TEXT']
-          inputs = tokenizer(text, return_tensors='pt', truncation=True, max_length=512)
-          with torch.no_grad():
-              logits = model(**inputs).logits
-          probs = torch.softmax(logits, dim=-1)
-          # Labels: 0=BENIGN, 1=INJECTION, 2=JAILBREAK
-          injection_score = probs[0][1].item() + probs[0][2].item()
-          label = 'INJECTION' if injection_score > 0.5 else 'BENIGN'
-          print(f'Classification: {label} (score: {injection_score:.3f})')
+          pipe = pipeline(
+              'text-classification',
+              model='protectai/deberta-v3-base-prompt-injection-v2',
+          )
+          result = pipe(text, truncation=True, max_length=512)[0]
+          label = result['label']
+          score = result['score']
+          print(f'Classification: {label} ({score:.3f})')
 
-          if label == 'INJECTION':
+          if label == 'INJECTION' and score > 0.8:
               print('::error::Prompt injection detected')
               print('detected=true', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
           else:
