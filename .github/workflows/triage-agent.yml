@@ -1,0 +1,35 @@
+name: Triage Agent
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Triage issue
+        uses: google-github-actions/run-gemini-cli@v1
+        with:
+          gemini_api_key: ${{ secrets.AI_API_KEY }}
+          gemini_model: gemini-3-flash-preview
+          prompt: |
+            Read the GEMINI.md file for project context.
+            Read the .gemini/commands/triage-issue.md skill for detailed instructions.
+
+            Triage GitHub issue #${{ github.event.issue.number }}.
+
+            Issue title: "${{ github.event.issue.title }}"
+
+            Use `gh issue view ${{ github.event.issue.number }}` to read the full issue body.
+            Then follow the triage-issue skill steps to classify and label it.
+          upload_artifacts: 'true'
+          github_issue_number: '${{ github.event.issue.number }}'
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_TOKEN }}

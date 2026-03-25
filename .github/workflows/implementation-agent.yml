@@ -1,0 +1,54 @@
+name: Implementation Agent
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  implement:
+    if: github.event.label.name == 'ready-for-implementation'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.AGENT_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Configure git
+        run: |
+          git config user.name "fullsend-agent[bot]"
+          git config user.email "fullsend-agent[bot]@users.noreply.github.com"
+
+      - name: Implement issue
+        uses: google-github-actions/run-gemini-cli@v1
+        with:
+          gemini_api_key: ${{ secrets.AI_API_KEY }}
+          gemini_model: gemini-3-pro-preview
+          prompt: |
+            Read the GEMINI.md file for project context and coding standards.
+            Read the .gemini/commands/implement-from-issue.md skill for detailed instructions.
+
+            Implement GitHub issue #${{ github.event.issue.number }}.
+
+            Use `gh issue view ${{ github.event.issue.number }}` to read the full issue.
+
+            Follow the implement-from-issue skill steps:
+            1. Create branch agent/${{ github.event.issue.number }}-<short-desc>
+            2. Implement the changes
+            3. Run `make test` and `make lint`
+            4. Commit, push, and open a PR with `gh pr create`
+            5. PR body must include: Closes #${{ github.event.issue.number }}
+          upload_artifacts: 'true'
+          github_issue_number: '${{ github.event.issue.number }}'
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_TOKEN }}

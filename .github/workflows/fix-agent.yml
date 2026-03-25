@@ -1,0 +1,73 @@
+name: Fix Agent
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fix-feedback:
+    if: github.event.review.state == 'changes_requested'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.AGENT_TOKEN }}
+
+      - name: Check iteration count
+        id: iteration
+        run: |
+          COUNT=$(gh pr view ${{ github.event.pull_request.number }} --json commits --jq '.commits | length')
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" -gt 5 ]; then
+            echo "escalate=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Escalate to human
+        if: steps.iteration.outputs.escalate == 'true'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "⚠️ Iteration limit reached (5 review-fix cycles). Escalating to human review. @waynesun09"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Go
+        if: steps.iteration.outputs.escalate != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Configure git
+        if: steps.iteration.outputs.escalate != 'true'
+        run: |
+          git config user.name "fullsend-agent[bot]"
+          git config user.email "fullsend-agent[bot]@users.noreply.github.com"
+
+      - name: Fix review feedback
+        if: steps.iteration.outputs.escalate != 'true'
+        uses: google-github-actions/run-gemini-cli@v1
+        with:
+          gemini_api_key: ${{ secrets.AI_API_KEY }}
+          gemini_model: gemini-3-pro-preview
+          prompt: |
+            Read the GEMINI.md file for project context.
+            Read the .gemini/commands/fix-review-feedback.md skill for detailed instructions.
+
+            Address review feedback on PR #${{ github.event.pull_request.number }}.
+
+            Read the review: `gh pr view ${{ github.event.pull_request.number }} --json reviews`
+            Read inline comments: `gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments`
+
+            Follow the fix-review-feedback skill steps to address all comments,
+            run tests, commit, and push.
+          upload_artifacts: 'true'
+          github_pr_number: '${{ github.event.pull_request.number }}'
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
