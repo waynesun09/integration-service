@@ -37,4 +37,4 @@ jobs:
             Post a structured review. If changes are needed, request changes.
             If everything looks good, approve the PR.
           post_pr_comment: 'true'
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.AGENT_TOKEN }}
