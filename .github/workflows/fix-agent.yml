@@ -7,11 +7,16 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: fix-agent-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   fix-feedback:
     if: >-
       github.event.review.state == 'changes_requested' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.review.user.login == 'fullsend-reviewer[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch

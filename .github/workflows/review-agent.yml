@@ -8,6 +8,10 @@ permissions:
   pull-requests: write
   checks: write
 
+concurrency:
+  group: review-agent-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   review:
     runs-on: ubuntu-latest
