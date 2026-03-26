@@ -12,7 +12,7 @@ Address PR review comments and push fixes.
    - If you disagree, reply explaining why (do NOT silently ignore)
 4. Run `make test` — verify fixes don't break anything
 5. Run `make lint` — verify style
-6. Commit: `git commit -s -m "fix: address review feedback"`
+6. Stage and commit: `git add -A && git commit -s -m "fix: address review feedback"`
 7. Push to the PR branch
 
 ## Constraints

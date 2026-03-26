@@ -15,7 +15,7 @@ Read a GitHub issue and implement the requested changes.
 6. Write or update tests for new/changed functionality
 7. Run `make test` — fix any failures
 8. Run `make lint` — fix any style issues
-9. Commit with: `git commit -s -m "<type>: <description>"`
+9. Stage and commit: `git add -A && git commit -s -m "<type>: <description>"`
 10. Push branch: `git push origin agent/<issue-number>-<short-desc>`
 11. Open PR: `gh pr create --title "<type>: <description>" --body "..."`
     - PR body must include: what changed, why, `Closes #<issue-number>`
