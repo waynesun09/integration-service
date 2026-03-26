@@ -61,6 +61,15 @@ jobs:
         with:
           gemini_api_key: ${{ secrets.AI_API_KEY }}
           gemini_model: gemini-3-flash-preview
+          settings: |
+            {
+              "tools": {
+                "core": [
+                  "run_shell_command(gh)",
+                  "run_shell_command(echo)"
+                ]
+              }
+            }
           prompt: |
             Read the GEMINI.md file for project context.
             Read the .gemini/commands/triage-issue.md skill for detailed instructions.
