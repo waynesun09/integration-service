@@ -115,11 +115,7 @@ jobs:
           gemini_api_key: ${{ secrets.AI_API_KEY }}
           gemini_model: gemini-3-pro-preview
           settings: |
-            {
-              "tools": {
-                "core": []
-              }
-            }
+            {}
           prompt: |
             Read the GEMINI.md file for project context.
             Read the .gemini/commands/fix-review-feedback.md skill for detailed instructions.

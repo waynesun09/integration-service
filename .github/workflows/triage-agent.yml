@@ -65,6 +65,7 @@ jobs:
             {
               "tools": {
                 "core": [
+                  "read_file",
                   "run_shell_command(gh)",
                   "run_shell_command(echo)"
                 ]
