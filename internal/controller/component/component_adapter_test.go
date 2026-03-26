@@ -97,6 +97,9 @@ var _ = Describe("Component Adapter", Ordered, func() {
 					},
 				},
 			},
+			Status: applicationapiv1alpha1.ComponentStatus{
+				LastPromotedImage: SampleImage,
+			},
 		}
 		Expect(k8sClient.Create(ctx, hasComp2)).Should(Succeed())
 	})
