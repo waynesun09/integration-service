@@ -1,16 +1,16 @@
 # Default owners for the entire repository
-* @waynesun09 @jdcasey @chmouel @ralphbean @ifireball @adambkaplan @Tojaj @ggallen @twaugh @maruiz93 @arewm @gbenhaim @ben-alkov @ascerra @rh-hemartin
+* @waynesun09 @ascerra @ben-alkov @ifireball @ggallen @rh-hemartin @maruiz93 @ralphbean
 
 # Agent workflow files — human review required
 # Agents must not modify their own guardrails
-/.github/workflows/triage-agent.yml @waynesun09 @jdcasey @chmouel @ralphbean
-/.github/workflows/implementation-agent.yml @waynesun09 @jdcasey @chmouel @ralphbean
-/.github/workflows/review-agent.yml @waynesun09 @jdcasey @chmouel @ralphbean
-/.github/workflows/fix-agent.yml @waynesun09 @jdcasey @chmouel @ralphbean
+/.github/workflows/triage-agent.yml @waynesun09 @ascerra @ben-alkov @ifireball @ggallen @rh-hemartin @maruiz93 @ralphbean
+/.github/workflows/implementation-agent.yml @waynesun09 @ascerra @ben-alkov @ifireball @ggallen @rh-hemartin @maruiz93 @ralphbean
+/.github/workflows/review-agent.yml @waynesun09 @ascerra @ben-alkov @ifireball @ggallen @rh-hemartin @maruiz93 @ralphbean
+/.github/workflows/fix-agent.yml @waynesun09 @ascerra @ben-alkov @ifireball @ggallen @rh-hemartin @maruiz93 @ralphbean
 
 # Agent configuration and system prompts
-/GEMINI.md @waynesun09 @jdcasey @chmouel @ralphbean
-/.gemini/ @waynesun09 @jdcasey @chmouel @ralphbean
+/GEMINI.md @waynesun09 @ascerra @ben-alkov @ifireball @ggallen @rh-hemartin @maruiz93 @ralphbean
+/.gemini/ @waynesun09 @ascerra @ben-alkov @ifireball @ggallen @rh-hemartin @maruiz93 @ralphbean
 
 # CODEOWNERS itself — prevents agents from weakening review gates
-/.github/CODEOWNERS @waynesun09 @jdcasey @chmouel @ralphbean
+/.github/CODEOWNERS @waynesun09 @ascerra @ben-alkov @ifireball @ggallen @rh-hemartin @maruiz93 @ralphbean
