@@ -129,25 +129,24 @@ var _ = Describe("Component Adapter", Ordered, func() {
 			},
 		})
 		snapshots := &applicationapiv1alpha1.SnapshotList{}
-		Eventually(func() bool {
-			Expect(k8sClient.List(ctx, snapshots, &client.ListOptions{Namespace: hasApp.Namespace})).To(Succeed())
-			return len(snapshots.Items) == 0
-		}, time.Second*20).Should(BeTrue())
+		Eventually(func(g Gomega) {
+			g.Expect(k8sClient.List(ctx, snapshots, &client.ListOptions{Namespace: hasApp.Namespace})).To(Succeed())
+			g.Expect(snapshots.Items).To(BeEmpty())
+		}, time.Second*20).Should(Succeed())
 
 		now := metav1.NewTime(metav1.Now().Add(time.Second * 1))
 		hasComp.SetDeletionTimestamp(&now)
 
 		result, err := adapter.EnsureComponentIsCleanedUp()
 
-		Eventually(func() bool {
-			Expect(k8sClient.List(ctx, snapshots, &client.ListOptions{Namespace: hasApp.Namespace})).To(Succeed())
+		Eventually(func(g Gomega) {
+			g.Expect(err).To(Not(HaveOccurred()))
+			g.Expect(result.CancelRequest).To(BeFalse())
 
-			// check if the snapshot is labeled with auto-release=false
-			Expect(snapshots.Items).To(HaveLen(1))
-			Expect(snapshots.Items[0].Labels[gitops.AutoReleaseLabel]).To(Equal("false"))
-
-			return !result.CancelRequest && len(snapshots.Items) == 1 && err == nil
-		}, time.Second*30).Should(BeTrue())
+			g.Expect(k8sClient.List(ctx, snapshots, &client.ListOptions{Namespace: hasApp.Namespace})).To(Succeed())
+			g.Expect(snapshots.Items).To(HaveLen(1))
+			g.Expect(snapshots.Items[0].Labels[gitops.AutoReleaseLabel]).To(Equal("false"))
+		}, time.Second*30).Should(Succeed())
 	})
 
 })
