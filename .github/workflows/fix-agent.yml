@@ -43,8 +43,11 @@ jobs:
             --jq '[.[].body // ""] | join("\n")')
           REVIEW_COMMENTS=$(gh api --paginate repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
             --jq '[.[].body // ""] | join("\n")')
+          ISSUE_COMMENTS=$(gh api --paginate repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            --jq '[.[].body // ""] | join("\n")')
           export REVIEW_TEXT="${REVIEW_BODY}
-          ${REVIEW_COMMENTS}"
+          ${REVIEW_COMMENTS}
+          ${ISSUE_COMMENTS}"
           RESPONSE=$(curl -s -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
