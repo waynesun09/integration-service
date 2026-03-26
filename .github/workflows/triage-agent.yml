@@ -26,15 +26,18 @@ jobs:
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
             "https://modelarmor.${GCP_LOCATION}.rep.googleapis.com/v1/projects/${GCP_PROJECT_ID}/locations/${GCP_LOCATION}/templates/${MODEL_ARMOR_TEMPLATE}:sanitizeUserPrompt" \
-            -d "$(jq -n --arg text "$ISSUE_TEXT" '{"user_prompt_data": {"text": $text}}')")
+            -d "$(jq -n '{user_prompt_data: {text: env.ISSUE_TEXT}}')")
           echo "$RESPONSE" | jq .
           MATCH=$(echo "$RESPONSE" | jq -r '.sanitizationResult.filterMatchState // "UNKNOWN"')
           echo "match=$MATCH" >> "$GITHUB_OUTPUT"
           if [ "$MATCH" = "MATCH_FOUND" ]; then
             echo "::error::Model Armor detected prompt injection or jailbreak"
             echo "detected=true" >> "$GITHUB_OUTPUT"
-          else
+          elif [ "$MATCH" = "NO_MATCH_FOUND" ]; then
             echo "detected=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Model Armor scan failed or returned unknown state: $MATCH"
+            echo "detected=true" >> "$GITHUB_OUTPUT"
           fi
         env:
           ISSUE_TEXT: ${{ github.event.issue.title }} ${{ github.event.issue.body }}
