@@ -3,14 +3,14 @@
 
 # Agent workflow files — human review required
 # Agents must not modify their own guardrails
-/.github/workflows/triage-agent.yml @konflux-ci/fullsend-sig
-/.github/workflows/implementation-agent.yml @konflux-ci/fullsend-sig
-/.github/workflows/review-agent.yml @konflux-ci/fullsend-sig
-/.github/workflows/fix-agent.yml @konflux-ci/fullsend-sig
+/.github/workflows/triage-agent.yml @waynesun09 @jdcasey @chmouel @ralphbean
+/.github/workflows/implementation-agent.yml @waynesun09 @jdcasey @chmouel @ralphbean
+/.github/workflows/review-agent.yml @waynesun09 @jdcasey @chmouel @ralphbean
+/.github/workflows/fix-agent.yml @waynesun09 @jdcasey @chmouel @ralphbean
 
 # Agent configuration and system prompts
-/GEMINI.md @konflux-ci/fullsend-sig
-/.gemini/ @konflux-ci/fullsend-sig
+/GEMINI.md @waynesun09 @jdcasey @chmouel @ralphbean
+/.gemini/ @waynesun09 @jdcasey @chmouel @ralphbean
 
 # CODEOWNERS itself — prevents agents from weakening review gates
-/.github/CODEOWNERS @konflux-ci/fullsend-sig
+/.github/CODEOWNERS @waynesun09 @jdcasey @chmouel @ralphbean

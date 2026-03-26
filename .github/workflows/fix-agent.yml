@@ -92,8 +92,10 @@ jobs:
       - name: Escalate to human
         if: steps.scan.outputs.detected != 'true' && steps.iteration.outputs.escalate == 'true'
         run: |
+          OWNERS=$(grep -m1 'fix-agent.yml' .github/CODEOWNERS | sed 's/^[^ ]* //')
+          OWNERS=${OWNERS:-"repository maintainers"}
           gh pr comment ${{ github.event.pull_request.number }} \
-            --body "⚠️ Iteration limit reached (5 review-fix cycles). Escalating to human review. @waynesun09"
+            --body "⚠️ Iteration limit reached (5 review-fix cycles). Escalating to human review. ${OWNERS}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
