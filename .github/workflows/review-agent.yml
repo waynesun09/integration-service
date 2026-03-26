@@ -28,6 +28,9 @@ jobs:
       - name: Scan PR for prompt injection
         id: scan
         run: |
+          PR_BODY=$(gh pr view ${{ github.event.pull_request.number }} \
+            --json title,body --jq '.title + "\n" + .body')
+          export PR_TEXT="$PR_BODY"
           RESPONSE=$(curl -s -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
@@ -45,7 +48,7 @@ jobs:
             echo "detected=true" >> "$GITHUB_OUTPUT"
           fi
         env:
-          PR_TEXT: ${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
           MODEL_ARMOR_TEMPLATE: ${{ secrets.MODEL_ARMOR_TEMPLATE }}

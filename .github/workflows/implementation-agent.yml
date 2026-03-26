@@ -8,6 +8,10 @@ permissions:
   issues: write
   pull-requests: write
 
+concurrency:
+  group: implement-agent-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   implement:
     if: github.event.label.name == 'ready-for-implementation'

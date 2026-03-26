@@ -22,6 +22,9 @@ jobs:
       - name: Scan issue with Model Armor
         id: scan
         run: |
+          ISSUE_BODY=$(gh issue view ${{ github.event.issue.number }} \
+            --json title,body --jq '.title + "\n" + .body')
+          export ISSUE_TEXT="$ISSUE_BODY"
           RESPONSE=$(curl -s -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
@@ -40,7 +43,7 @@ jobs:
             echo "detected=true" >> "$GITHUB_OUTPUT"
           fi
         env:
-          ISSUE_TEXT: ${{ github.event.issue.title }} ${{ github.event.issue.body }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
           MODEL_ARMOR_TEMPLATE: ${{ secrets.MODEL_ARMOR_TEMPLATE }}
