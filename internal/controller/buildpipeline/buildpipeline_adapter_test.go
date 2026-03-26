@@ -1836,6 +1836,10 @@ var _ = Describe("Pipeline Adapter", Ordered, func() {
 						ContextKey: loader.GetBuildPLRContextKey,
 						Resource:   []tektonv1.PipelineRun{*buildPipelineRun, *buildPipelineRun2},
 					},
+				{
+					ContextKey: loader.GetPipelineRunContextKey,
+					Resource:   buildPipelineRun2,
+				},
 				})
 			})
 			AfterEach(func() {

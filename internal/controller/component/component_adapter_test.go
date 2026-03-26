@@ -102,6 +102,7 @@ var _ = Describe("Component Adapter", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, hasComp2)).Should(Succeed())
+	Expect(k8sClient.Status().Update(ctx, hasComp2)).Should(Succeed())
 	})
 
 	AfterAll(func() {
